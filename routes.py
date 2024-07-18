@@ -1,30 +1,34 @@
-from fastapi import APIRouter, Body
+from typing import Annotated
 
-from schemas import AnswerRequest, AnswerResponse
+from fastapi import APIRouter, Depends
+from starlette.requests import Request
 
 router = APIRouter()
 
 
+class FirstDependsWithParams:
+    def __init__(self, param_1: int, param_2: int):
+        self.param_1 = param_1
+        self.param_2 = param_2
+
+    async def __call__(self, request: Request) -> None:
+        print(request)
+        print(self.param_1, self.param_2)
+
+
+def second_depends_with_params(param_1: int, param_2: int):
+    def inner(request: Request) -> None:
+        print(request)
+        print(param_1, param_2)
+
+    return inner
+
+
 @router.get(
     r"/answer",
-    response_model=AnswerResponse
 )
 async def answer_get_handler(
-        param1: int,
-        param2: int,
-        param3: int = 0,
-) -> AnswerResponse:
-    return AnswerResponse(
-        answer=param1 + param2 + param3
-    )
-
-
-@router.post(
-    r"/answer"
-)
-async def answer_post_handler(
-        body_params: AnswerRequest = Body(),
-) -> AnswerResponse:
-    return AnswerResponse(
-        answer=body_params.param1 + body_params.param2 + body_params.param3
-    )
+        first_depends: Annotated[None, Depends(FirstDependsWithParams(1, 2)),],
+        second_depends: Annotated[None, Depends(second_depends_with_params(1, 2))]
+) -> str:
+    return "suscess"
