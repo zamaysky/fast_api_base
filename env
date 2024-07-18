@@ -1,0 +1,1 @@
+DB_URL=postgresql+asyncpg://my_user:sesame@localhost:5432/mydatabase
